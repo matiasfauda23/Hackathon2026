@@ -7,10 +7,12 @@ const sinLat = new Float32Array(N), cosLat = new Float32Array(N), sinLon = new F
 const tipo = new Uint8Array(N);        // 0 océano, 1 tierra, 2 hielo
 const rnd = new Float32Array(N), rnd2 = new Float32Array(N), golpe = new Float32Array(N);
 const pantX = new Float32Array(N), pantY = new Float32Array(N), pantZ = new Float32Array(N);
+const latDeg = new Float32Array(N), lonDeg = new Float32Array(N);
 
 let k = 0;
 for (let lat = -89; lat <= 89; lat += PASO) {
   for (let lon = -179; lon <= 179; lon += PASO) {
+    latDeg[k] = lat; lonDeg[k] = lon;
     sinLat[k] = Math.sin(lat * RAD); cosLat[k] = Math.cos(lat * RAD);
     sinLon[k] = Math.sin(lon * RAD); cosLon[k] = Math.cos(lon * RAD);
     let t = 0;
@@ -20,6 +22,9 @@ for (let lat = -89; lat <= 89; lat += PASO) {
     k++;
   }
 }
+let TOTAL_TIERRA = 0, TOTAL_OCEANO = 0;
+for (let i = 0; i < N; i++) tipo[i] === 0 ? TOTAL_OCEANO++ : TOTAL_TIERRA++;
+
 const ARBOLES = [];
 for (let i = 0; i < N; i++) if (tipo[i] === 1 && rnd[i] < 0.09) ARBOLES.push(i);
 
