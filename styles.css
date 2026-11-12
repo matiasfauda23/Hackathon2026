@@ -82,3 +82,25 @@ body .secundario:hover { opacity: 1; background: rgba(0,0,0,.06); }
 .trofeo { font-size: 64px; }
 .finalCaja h2 { font-size: 2.2rem; margin: 6px 0 12px; }
 .finalCaja .detalle { opacity: .8; font-size: .92rem; }
+
+/* ---- Informe oficial (pop-up) ---- */
+.modal { position: fixed; inset: 0; z-index: 9; display: none; place-items: center; padding: 20px;
+  background: rgba(10,10,15,.65); }
+.modal.visible { display: grid; animation: aparecer .6s ease-out; }
+.documento { position: relative; width: 100%; max-width: 640px; max-height: 92vh; overflow: auto;
+  background: #fbfaf6; color: #1d2433; font-family: Georgia, "Times New Roman", serif;
+  border-top: 6px solid #13294b; border-radius: 4px; padding: 26px 32px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.docHead { display: flex; gap: 14px; align-items: center; border-bottom: 2px solid #13294b; padding-bottom: 12px; }
+.escudo { font-size: 40px; }
+.org { font-size: .75rem; letter-spacing: 2px; text-transform: uppercase; color: #4b5563; }
+.tit { font-size: 1.45rem; font-weight: bold; color: #13294b; }
+.docMeta { display: flex; justify-content: space-between; font-size: .8rem; color: #555; margin: 10px 0 14px; }
+.documento table { font-size: .88rem; }
+.documento td:last-child { color: #13294b; }
+.documento .conclusion { border-left-color: #13294b; background: #efede4; font-size: .95rem; }
+.sello { position: absolute; bottom: 118px; right: 30px; transform: rotate(-14deg); color: #b3261e; border: 3px solid #b3261e;
+  padding: 4px 12px; font: bold 1.1rem "Courier New", monospace; letter-spacing: 3px; opacity: .75; }
+.pregunta { text-align: center; font-weight: bold; font-size: 1.1rem; margin: 20px 0 10px; color: #13294b; }
+.acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+body .documento button { background: #13294b; color: #fff; margin-top: 0; font-family: inherit; }
+body .documento .secundario { background: transparent; color: #13294b; border: 1px solid #13294b; opacity: 1; }
