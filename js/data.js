@@ -45,27 +45,16 @@ const ZONAS = [
   ["America/Mexico_City", "México", 19.4, -99.1], ["Europe/Madrid", "España", 40.4, -3.7], ["America/New_York", "Estados Unidos", 40.7, -74],
 ];
 
-// Provincias de Argentina (se destruye una por consulta corta; la primera siempre es Tucumán)
-const PROVINCIAS = [
-  { nombre: "Tucumán", lat: -26.8, lon: -65.2 }, { nombre: "Córdoba", lat: -31.4, lon: -64.2 },
-  { nombre: "Mendoza", lat: -32.9, lon: -68.8 }, { nombre: "Salta", lat: -24.8, lon: -65.4 },
-  { nombre: "Buenos Aires", lat: -36.5, lon: -60.0 }, { nombre: "Santa Fe", lat: -31.0, lon: -61.0 },
-  { nombre: "Neuquén", lat: -38.9, lon: -69.5 }, { nombre: "Misiones", lat: -27.0, lon: -54.8 },
-  { nombre: "Chubut", lat: -43.5, lon: -68.5 }, { nombre: "Jujuy", lat: -23.0, lon: -65.8 },
-  { nombre: "Santa Cruz", lat: -48.8, lon: -69.8 }, { nombre: "Tierra del Fuego", lat: -54.2, lon: -67.8 },
-  { nombre: "La Pampa", lat: -37.0, lon: -65.5 }, { nombre: "San Juan", lat: -30.8, lon: -68.9 },
-  { nombre: "Corrientes", lat: -28.8, lon: -57.9 }, { nombre: "Río Negro", lat: -40.0, lon: -67.5 },
-];
-
 // Contorno simplificado de Argentina [longitud, latitud]
 const ARGENTINA = [[-66,-22],[-62.5,-22],[-60,-24],[-58,-25.5],[-54.5,-25.5],[-53.7,-26.5],[-55.8,-28],[-58,-30.2],[-58.4,-33.5],[-57,-36.5],[-57.6,-38.2],[-62,-39],[-62.3,-40.8],[-65,-41],[-64,-42.5],[-65.2,-45],[-67.5,-46.5],[-65.8,-47.8],[-69,-51],[-68.3,-52.3],[-68.6,-54.9],[-66.5,-55.1],[-70,-52.5],[-72.3,-51],[-72.5,-48],[-71.7,-44],[-71.9,-40],[-70.6,-36.5],[-70,-33],[-70.5,-28],[-68.5,-24.5],[-67,-22.8]];
 
-// Niveles de destrucción según la cantidad de palabras de la consulta
-const NIVELES = [
-  { min: 1,  id: "provincia",  nombre: "una provincia argentina" },
-  { min: 6,  id: "pais",       nombre: "Argentina entera" },
-  { min: 10, id: "continente", nombre: "el continente americano" },
-  { min: 13, id: "planeta",    nombre: "el planeta Tierra" },
-  { min: 15, id: "luna",       nombre: "la Tierra y la Luna" },
-  { min: 17, id: "todo",       nombre: "TODOS los recursos del planeta" },
+// Qué se destruye en cada consulta (la 1.ª, la 2.ª, la 3.ª...)
+const SECUENCIA = [
+  { id: "provincia", nombre: "Tucumán", lat: -26.8, lon: -65.2, radio: 2.8 },
+  { id: "provincia", nombre: "Francia", lat: 46.5, lon: 2.5, radio: 5.5 },
+  { id: "provincia", nombre: "India", lat: 22, lon: 79, radio: 12 },
+  { id: "pais", nombre: "Argentina" },
+  { id: "continente", nombre: "América" },
+  { id: "planeta", nombre: "el planeta Tierra" },
+  { id: "todo", nombre: "el planeta Tierra y la Luna" },
 ];
