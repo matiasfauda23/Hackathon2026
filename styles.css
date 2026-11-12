@@ -68,3 +68,17 @@ td { padding: 7px 4px; border-bottom: 1px solid rgba(0,0,0,.12); }
 td:last-child { text-align: right; font-family: Consolas, monospace; white-space: nowrap; }
 .conclusion { margin-top: 12px; padding: 12px; border-left: 4px solid #b3261e; background: rgba(255,255,255,.5); border-radius: 6px; }
 .nota { font-size: .75rem; opacity: .7; margin-top: 10px; }
+
+/* ---- Botón secundario y pantalla final ---- */
+body .secundario, body.muerto .secundario { background: transparent; color: inherit; border: 1px solid currentColor;
+  margin-top: 8px; padding: 9px; font-size: .92rem; font-weight: 600; opacity: .8; }
+body .secundario:hover { opacity: 1; background: rgba(0,0,0,.06); }
+.final { position: fixed; inset: 0; z-index: 10; display: none; place-items: center; padding: 20px;
+  background: rgba(15,5,0,.85); }
+.final.visible { display: grid; animation: aparecer 1.2s ease-out; }
+@keyframes aparecer { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+.finalCaja { max-width: 480px; text-align: center; color: #ffe0b8; background: #1c0f07; border: 2px solid #e3261b;
+  border-radius: 16px; padding: 32px; box-shadow: 0 0 60px rgba(227,38,27,.45); }
+.trofeo { font-size: 64px; }
+.finalCaja h2 { font-size: 2.2rem; margin: 6px 0 12px; }
+.finalCaja .detalle { opacity: .8; font-size: .92rem; }

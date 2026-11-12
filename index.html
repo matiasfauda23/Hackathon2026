@@ -27,8 +27,9 @@
   <section class="panel">
     <h2>Tu consulta</h2>
     <textarea id="pregunta" placeholder="Escribí lo que le ibas a preguntar a la IA. Ej.: hola"></textarea>
-    <div class="nivel"><span id="nivelTexto">Escribí algo… si te animás.</span><span id="nivelChars">0 caracteres</span></div>
+    <div class="nivel"><span id="nivelTexto">Escribí algo… si te animás.</span><span id="nivelChars">0 palabras</span></div>
     <button id="boton" onclick="consultar()">Calcular impacto de mi consulta</button>
+    <button class="secundario" onclick="restaurar()">Restaurar el planeta</button>
 
     <div class="salud">
       <div class="fila"><span>Salud del planeta</span><span id="saludTexto">100,0000 %</span></div>
@@ -45,6 +46,17 @@
     <div id="resultado"></div>
   </section>
 </main>
+
+<div id="final" class="final">
+  <div class="finalCaja">
+    <div class="trofeo">🏆</div>
+    <h2>¡Felicitaciones!</h2>
+    <p>Consumiste el <b>100,0000 %</b> de los recursos del planeta.</p>
+    <p class="detalle">Bosques: 0 · Océanos: 0 · Especies: 0 · Luna: en pedazos</p>
+    <p class="detalle">La IA ya tiene tu respuesta, pero no queda nadie para leerla.</p>
+    <button onclick="restaurar()">Restaurar el planeta</button>
+  </div>
+</div>
 
 <script src="js/data.js"></script>
 <script src="js/utils.js"></script>
