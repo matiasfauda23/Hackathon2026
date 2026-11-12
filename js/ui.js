@@ -122,3 +122,15 @@ function restaurar() {
   document.getElementById("vOceano").textContent = "0,0000 %";
   document.getElementById("boton").textContent = "Calcular impacto de mi consulta";
 }
+
+// Hojas decorativas
+const hojas = document.getElementById("hojas");
+for (let i = 0; i < 14; i++) {
+  const h = document.createElement("span");
+  h.className = "hoja";
+  h.dataset.original = h.textContent = ["🍃", "🌿", "🌱", "🍀"][i % 4];
+  h.style.left = Math.random() * 100 + "vw";
+  h.style.animationDuration = 9 + Math.random() * 10 + "s";
+  h.style.animationDelay = -Math.random() * 15 + "s";
+  hojas.appendChild(h);
+}
