@@ -56,3 +56,27 @@ function calcularResultado(texto) {
     salud: 4.2 * Math.pow(1 - nivel, 2) + 0.0003 + azar() * 0.0001,
   };
 }
+
+function mostrarResultado() {
+  const r = sim.resultado;
+  const div = document.getElementById("resultado");
+  div.innerHTML = `
+    <h2>Informe de impacto</h2>
+    <table>
+      <tr><td>Largo de la consulta</td><td>${r.L} caracteres</td></tr>
+      <tr><td>Tokens consumidos (consulta + respuesta)</td><td>${fmt(r.tokens, 0)}</td></tr>
+      <tr><td>Árboles talados</td><td>${fmt(r.arboles, 2)}</td></tr>
+      <tr><td>Hectáreas incendiadas</td><td>${fmt(r.hectareas, 3)}</td></tr>
+      <tr><td>Agua de océano evaporada</td><td>${fmt(r.litros, 4)} billones de L</td></tr>
+      <tr><td>Especies extintas</td><td>${fmt(r.especies, 1)}</td></tr>
+      <tr><td>Pingüinos desalojados</td><td>${fmt(r.pinguinos, 2)}</td></tr>
+      <tr><td>Arena generada</td><td>${fmt(r.arena, 1)} t</td></tr>
+      <tr><td>Origen del desastre</td><td>${sim.pais.nombre}</td></tr>
+      <tr><td>Daño colateral</td><td>${sim.lunaExplota < Infinity ? "La Luna" : "Ninguno (por ahora)"}</td></tr>
+    </table>
+    <div class="conclusion">Tu consulta de <b>${r.L} caracteres</b> dejó al planeta con un <b>${fmt(r.salud, 4)} %</b> de salud.
+      ${r.L < 40 ? "Y eso que era cortita." : "Si hubieras sido más breve, quedaban un par de árboles."}
+      ${sim.lunaExplota < Infinity ? "Por suerte no le dijiste «gracias»: también se iba Marte." : "Si además le hubieras dicho «gracias», también se iba la Luna."}</div>
+    <p class="nota">Cifras 100 % inventadas, calculadas con máxima seriedad. Ningún pingüino fue dañado en la realización de este cálculo.</p>`;
+  div.style.display = "block";
+}
