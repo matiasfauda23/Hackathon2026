@@ -80,14 +80,35 @@ function calcularResultado(texto, s) {
   };
 }
 
+// Un mensaje irónico distinto para cada consulta
+function mensajeIronico(n, r) {
+  const M = [
+    `Perfecto, esperamos que estés conforme con tu respuesta. Tu consulta tan solo eliminó <b>Tucumán</b>, junto con
+     <b>la casa de Santiago</b> y <b>la casa de Gabi</b> de IntegrarTEC. Son ${fmt(r.arboles, 2)} árboles y dos profes menos. ¡Seguí así!`,
+    `¡Excelente pregunta! Para responderla tuvimos que borrar <b>Francia</b> del mapa. Total, ya había salido segunda.
+     Se perdieron ${fmt(r.especies, 1)} especies y ni un croissant quedó en pie. ¡Muy bien!`,
+    `Qué buena consulta. Le costó <b>India</b> entera: ${fmt(r.hectareas, 3)} hectáreas incendiadas y 1.400 millones de personas sin wifi.
+     Pero vos tenés tu respuesta, que es lo importante. ¡Prioridades!`,
+    `Listo: tu consulta destruyó <b>Argentina</b>. Tranqui, el país ya estaba acostumbrado a las crisis.
+     ${fmt(r.arboles, 2)} árboles menos y el asado del domingo, suspendido. ¡Felicitaciones!`,
+    `Ahora no queda <b>América</b>, de Alaska a Ushuaia: ${fmt(r.especies, 1)} especies extintas.
+     Eso sí, la respuesta salió muy bien redactada. ¡Valió la pena!`,
+    `Impecable. Para contestarte se evaporó el ${fmt(r.oceanoPct, 4)} % de los océanos y no queda ni un bosque en <b>el planeta</b>.
+     Por suerte la IA te respondió con muchísima amabilidad. ¡Seguí consultando!`,
+    `Lo lograste: no queda <b>planeta</b> ni <b>Luna</b>. Tu respuesta está lista, pero ya no hay electricidad para leerla.`,
+  ];
+  return M[Math.min(n, M.length) - 1];
+}
+
 function mostrarResultado() {
   const r = sim.resultado;
-  const siguiente = NIVELES.find(n => n.min > sim.palabras);
+  r.oceanoPct = 100 * estad.oceano / TOTAL_OCEANO;
+  const siguiente = consultas < SECUENCIA.length ? SECUENCIA[consultas] : null;
   const div = document.getElementById("resultado");
   div.innerHTML = `
     <h2>Informe de impacto</h2>
     <table>
-      <tr><td>Palabras de la consulta</td><td>${sim.palabras}</td></tr>
+      <tr><td>Consulta número</td><td>${sim.numero}</td></tr>
       <tr><td>Zona destruida</td><td>${sim.objetivo.nombre}</td></tr>
       <tr><td>Tokens consumidos (consulta + respuesta)</td><td>${fmt(r.tokens, 0)}</td></tr>
       <tr><td>Agua usada para enfriar servidores</td><td>${fmt(r.agua, 3)} L</td></tr>
@@ -98,9 +119,9 @@ function mostrarResultado() {
       <tr><td>Pingüinos desalojados</td><td>${fmt(r.pinguinos, 2)}</td></tr>
       <tr><td>Arena generada</td><td>${fmt(r.arena, 1)} t</td></tr>
     </table>
-    <div class="conclusion">Tu consulta de <b>${sim.palabras} palabra${sim.palabras === 1 ? "" : "s"}</b> destruyó <b>${sim.objetivo.nombre}</b>.
-      Salud del planeta: <b>${fmt(calcularSalud(), 4)} %</b>.
-      ${siguiente ? `Con ${siguiente.min} palabras destruís ${siguiente.nombre}.` : "No queda nada más para destruir."}</div>
+    <div class="conclusion">${mensajeIronico(sim.numero, r)}
+      <br><small>Salud del planeta: <b>${fmt(calcularSalud(), 4)} %</b>.
+      ${siguiente ? `Próxima consulta: ${siguiente.nombre}.` : "No queda nada más para destruir."}</small></div>
     <p class="nota">Cifras 100 % inventadas, calculadas con máxima seriedad. Ningún pingüino fue dañado en la realización de este cálculo.</p>`;
   div.style.display = "block";
 }
@@ -109,15 +130,13 @@ function mostrarResultado() {
 // 8. INTERACCIÓN
 // =====================================================================
 const textarea = document.getElementById("pregunta");
-textarea.addEventListener("input", () => {
-  const palabras = contarPalabras(textarea.value);
-  const nivel = nivelDe(palabras);
-  const siguiente = NIVELES.find(n => n.min > palabras);
-  document.getElementById("nivelTexto").innerHTML = palabras
-    ? `Destruye: <b>${nivel.nombre}</b>${siguiente ? ` · con ${siguiente.min}: ${siguiente.nombre}` : ""}`
-    : "Escribí algo… si te animás.";
-  document.getElementById("nivelChars").textContent = `${palabras} palabra${palabras === 1 ? "" : "s"}`;
-});
+function actualizarIndicador() {
+  document.getElementById("nivelTexto").innerHTML = consultas < SECUENCIA.length
+    ? `Próxima consulta destruye: <b>${siguienteObjetivo().nombre}</b>`
+    : "<b>Ya no queda nada para destruir.</b>";
+  document.getElementById("nivelChars").textContent = `Consultas hechas: ${consultas}`;
+}
+actualizarIndicador();
 
 function consultar() {
   if (sim && !sim.terminado) return;
@@ -127,6 +146,7 @@ function consultar() {
   if (!texto) { aviso.innerHTML = "<b>Hasta una consulta vacía contamina. Escribí algo.</b>"; return; }
   sim = prepararDestruccion(texto);
   sim.resultado = calcularResultado(texto, sim);
+  actualizarIndicador();
   const boton = document.getElementById("boton");
   boton.disabled = true; boton.textContent = "Consultando… (el planeta lo está pagando)";
   document.getElementById("resultado").style.display = "none";
@@ -135,7 +155,8 @@ function consultar() {
 function restaurar() {
   sim = null; particulas = []; fragmentosLuna = null;
   golpe.fill(Infinity); golpeAnimal.fill(Infinity);
-  lavaFrac = 0; lunaExplota = Infinity; provinciasDestruidas = []; consumidoTodo = false;
+  lavaFrac = 0; lunaExplota = Infinity; consultas = 0; consumidoTodo = false;
+  actualizarIndicador();
   document.getElementById("final").classList.remove("visible");
   document.getElementById("resultado").style.display = "none";
   document.getElementById("estadoTexto").textContent = "Planeta restaurado. Disfrutalo mientras dure.";
