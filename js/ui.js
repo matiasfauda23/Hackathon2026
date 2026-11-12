@@ -80,3 +80,45 @@ function mostrarResultado() {
     <p class="nota">Cifras 100 % inventadas, calculadas con máxima seriedad. Ningún pingüino fue dañado en la realización de este cálculo.</p>`;
   div.style.display = "block";
 }
+
+// =====================================================================
+// 8. INTERACCIÓN
+// =====================================================================
+const textarea = document.getElementById("pregunta");
+textarea.addEventListener("input", () => {
+  const L = textarea.value.trim().length, nivel = lim(L / 300, 0, 1);
+  const nombres = [[0.15, "Catastrófico"], [0.4, "Apocalíptico"], [0.7, "Extinción masiva"], [0.9, "Colapso planetario (con lava)"], [1.01, "Fin del sistema solar (incluye la Luna)"]];
+  const n = nombres.find(([max]) => nivel < max)[1];
+  document.getElementById("nivelTexto").innerHTML = L ? `Daño previsto: <b>${n}</b>` : "Escribí algo… si te animás.";
+  document.getElementById("nivelChars").textContent = `${L} caracteres`;
+});
+
+function consultar() {
+  const boton = document.getElementById("boton");
+  if (sim && sim.terminado) { restaurar(); return; }
+  const texto = textarea.value.trim();
+  if (!texto) { document.getElementById("nivelTexto").innerHTML = "<b>Hasta una consulta vacía contamina. Escribí algo.</b>"; return; }
+  sim = prepararDestruccion(texto, detectarPais());
+  sim.resultado = calcularResultado(texto);
+  boton.disabled = true; boton.textContent = "Consultando… (el planeta lo está pagando)";
+  document.getElementById("resultado").style.display = "none";
+  setTimeout(() => document.body.classList.add("muerto"), INICIO * 1000);
+  document.querySelectorAll(".hoja").forEach(h => h.textContent = "🍂");
+}
+
+function restaurar() {
+  sim = null; particulas = [];
+  golpe.fill(Infinity);
+  document.body.classList.remove("muerto");
+  document.querySelectorAll(".hoja").forEach(h => h.textContent = h.dataset.original);
+  document.getElementById("resultado").style.display = "none";
+  document.getElementById("estadoTexto").textContent = "Planeta restaurado. Disfrutalo mientras dure.";
+  document.getElementById("estadoPct").textContent = "";
+  document.getElementById("barraRelleno").style.width = "0";
+  document.getElementById("saludTexto").textContent = "100,0000 %";
+  const barra = document.getElementById("saludBarra");
+  barra.style.width = "100%"; barra.style.background = "#2e9e4f";
+  ["vArboles", "vEspecies", "vIncendios"].forEach(id => document.getElementById(id).textContent = "0");
+  document.getElementById("vOceano").textContent = "0,0000 %";
+  document.getElementById("boton").textContent = "Calcular impacto de mi consulta";
+}
