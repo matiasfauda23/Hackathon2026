@@ -14,25 +14,29 @@ window.addEventListener("resize", redimensionar);
 redimensionar();
 let lon0 = -60, lat0 = 8;          // hacia dónde mira la cámara
 let particulas = [];
+let fragmentosLuna = null;
 let ultimo = performance.now();
+const estad = { tierra: 0, oceano: 0, focos: 0, animales: 0 };   // lo destruido hasta ahora
 
 function dibujar(ahora) {
   const dt = Math.min(0.05, (ahora - ultimo) / 1000);
   ultimo = ahora;
-  const t = sim ? (sim.t += dt) : 0;
+  const t = (reloj += dt);
+  const tSim = sim ? t - sim.t0 : 0;
 
-  // --- cámara: gira sola, o viaja hacia tu país cuando consultás ---
-  if (sim && t < INICIO) {
-    const p = t / INICIO, e = p * p * (3 - 2 * p);
-    const dLon = ((sim.pais.lon - sim.lonInicio + 540) % 360) - 180;
+  // --- cámara: gira sola, o viaja hacia el objetivo cuando consultás ---
+  if (sim && tSim < INICIO) {
+    const p = tSim / INICIO, e = p * p * (3 - 2 * p);
+    const dLon = ((sim.objetivo.lon - sim.lonInicio + 540) % 360) - 180;
     lon0 = sim.lonInicio + dLon * e;
-    lat0 = sim.latInicio + (sim.pais.lat * 0.7 - sim.latInicio) * e;
+    lat0 = sim.latInicio + (sim.objetivo.lat * 0.8 - sim.latInicio) * e;
   } else {
-    lon0 += dt * (sim ? 16 : 9);
+    const quieta = sim && !sim.terminado && ["provincia", "pais", "continente"].includes(sim.nivel.id);
+    lon0 += dt * (quieta ? 0 : sim && !sim.terminado ? 16 : 9);
   }
 
-  // progreso de la destrucción (0 a 1)
-  const prog = sim ? lim((t - INICIO) / (sim.expansion + 1.5), 0, 1) : 0;
+  // daño total del planeta (0 = intacto, 1 = destruido), según lo que ya se destruyó
+  const prog = 1 - calcularSalud() / 100;
 
   ctx.clearRect(0, 0, TAM, TAM);
 
@@ -43,7 +47,7 @@ function dibujar(ahora) {
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(CX, CY, R * 1.18, 0, Math.PI * 2); ctx.fill();
 
   // --- océano (esfera de fondo) ---
-  const mar = mezcla([28, 112, 186], [92, 80, 58], prog * (sim ? 0.3 + 0.7 * sim.nivel : 0));
+  const mar = mezcla([28, 112, 186], [92, 80, 58], estad.oceano / TOTAL_OCEANO);
   g = ctx.createRadialGradient(CX - R * 0.35, CY - R * 0.4, R * 0.1, CX, CY, R);
   g.addColorStop(0, `rgb(${mezcla(mar, [255, 255, 255], 0.25)})`); g.addColorStop(1, `rgb(${mezcla(mar, [0, 0, 0], 0.45)})`);
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.fill();
@@ -54,7 +58,7 @@ function dibujar(ahora) {
   const lado = PASO * RAD * R * 1.18;
   const LX = -0.45, LY = 0.55, LZ = 0.7;
   for (const b of BALDES) b.length = 0;
-  let focos = 0;
+  let focos = 0, tierra = 0, oceano = 0;
 
   for (let i = 0; i < N; i++) {
     const cosd = cosLon[i] * c0 + sinLon[i] * s0;
@@ -63,6 +67,7 @@ function dibujar(ahora) {
     pantZ[i] = z;
     const c = colorDe(i, t);
     if (c >= IDX.fuego1 && c <= IDX.fuego3) focos++;
+    if (golpe[i] <= t) tipo[i] === 0 ? oceano++ : tierra++;
     if (z <= 0) continue;
     const x = cosLat[i] * sind, y = cl0 * sinLat[i] - sl0 * cosLat[i] * cosd;
     const X = CX + R * x, Y = CY - R * y;
@@ -107,11 +112,11 @@ function dibujar(ahora) {
   }
 
   // --- animales ---
-  const animales = sim ? sim.animales : ANIMALES.map(([emoji, la, lo]) => ({ emoji, la, lo, golpe: Infinity }));
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   let extintos = 0;
-  for (const a of animales) {
-    const d = t - a.golpe;
+  for (let n = 0; n < ANIMALES.length; n++) {
+    const a = { emoji: ANIMALES[n][0], la: ANIMALES[n][1], lo: ANIMALES[n][2] };
+    const d = t - golpeAnimal[n];
     if (d >= 0) extintos++;
     const la = a.la * RAD, dl = (a.lo - lon0) * RAD;
     const z = sl0 * Math.sin(la) + cl0 * Math.cos(la) * Math.cos(dl);
@@ -137,16 +142,40 @@ function dibujar(ahora) {
     ctx.beginPath(); ctx.arc(p.x, p.y, (2 + f * 7) * esc, 0, Math.PI * 2); ctx.fill();
   }
 
+  // --- cartel con el nombre del objetivo ---
+  if (sim && !sim.terminado && tSim > INICIO * 0.6) dibujarCartel(sim.objetivo, sl0, cl0, esc);
+
   // --- la Luna (solo explota con consultas largas) ---
   dibujarLuna(t, dt);
 
-  if (sim) actualizarPanel(t, prog, focos, extintos, animales.length);
-  requestAnimationFrame(dibujar);
+  estad.tierra = tierra; estad.oceano = oceano; estad.focos = focos; estad.animales = extintos;
+  actualizarPanel(tSim);
+  // Marca roja + nombre del lugar que se está destruyendo
+function dibujarCartel(obj, sl0, cl0, esc) {
+  const la = obj.lat * RAD, dl = (obj.lon - lon0) * RAD;
+  const z = sl0 * Math.sin(la) + cl0 * Math.cos(la) * Math.cos(dl);
+  let X = CX + R * Math.cos(la) * Math.sin(dl);
+  let Y = CY - R * (cl0 * Math.sin(la) - sl0 * Math.cos(la) * Math.cos(dl));
+  if (z < 0.1 || obj.nombre === "el planeta Tierra") { X = CX; Y = CY - R * 1.08; }
+  else {
+    ctx.fillStyle = "#e3261b"; ctx.beginPath(); ctx.arc(X, Y, 5 * esc, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#e3261b"; ctx.lineWidth = 2 * esc; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X, Y - 26 * esc); ctx.stroke();
+    Y -= 36 * esc;
+  }
+  const texto = "Destruyendo " + obj.nombre;
+  ctx.font = `bold ${Math.round(15 * esc)}px "Segoe UI", sans-serif`;
+  const ancho = ctx.measureText(texto).width + 16 * esc;
+  ctx.fillStyle = "rgba(20,10,5,.82)";
+  ctx.fillRect(X - ancho / 2, Y - 13 * esc, ancho, 26 * esc);
+  ctx.fillStyle = "#ffd5b0"; ctx.fillText(texto, X, Y);
+}
+
+requestAnimationFrame(dibujar);
 }
 
 function dibujarLuna(t, dt) {
   const lx = CX + R * 1.12, ly = CY - R * 1.14, lr = R * 0.12;
-  if (!sim || t < sim.lunaExplota) {
+  if (t < lunaExplota) {
     const g = ctx.createRadialGradient(lx - lr * 0.4, ly - lr * 0.4, lr * 0.1, lx, ly, lr);
     g.addColorStop(0, "#f4f4f0"); g.addColorStop(1, "#9a9a94");
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI * 2); ctx.fill();
@@ -156,20 +185,40 @@ function dibujarLuna(t, dt) {
     });
     return;
   }
-  if (!sim.fragmentos) {
-    sim.fragmentos = Array.from({ length: 9 }, () => ({ x: lx, y: ly, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, r: lr * (0.2 + Math.random() * 0.3), rot: Math.random() * 6 }));
+  if (!fragmentosLuna) {
+    fragmentosLuna = Array.from({ length: 9 }, () => ({ x: lx, y: ly, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, r: lr * (0.2 + Math.random() * 0.3), rot: Math.random() * 6 }));
   }
-  const d = t - sim.lunaExplota;
+  const d = t - lunaExplota;
   if (d < 0.6) { // destello
     ctx.fillStyle = `rgba(255,200,80,${1 - d / 0.6})`;
     ctx.beginPath(); ctx.arc(lx, ly, lr * (1 + d * 5), 0, Math.PI * 2); ctx.fill();
   }
   ctx.fillStyle = "#a8a8a0";
-  for (const f of sim.fragmentos) {
+  for (const f of fragmentosLuna) {
     f.x += f.vx * dt * 30 * 0.3; f.y += f.vy * dt * 30 * 0.3; f.rot += dt * 2;
     ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rot);
     ctx.fillRect(-f.r / 2, -f.r / 2, f.r, f.r * 0.7); ctx.restore();
   }
+}
+
+// Marca roja + nombre del lugar que se está destruyendo
+function dibujarCartel(obj, sl0, cl0, esc) {
+  const la = obj.lat * RAD, dl = (obj.lon - lon0) * RAD;
+  const z = sl0 * Math.sin(la) + cl0 * Math.cos(la) * Math.cos(dl);
+  let X = CX + R * Math.cos(la) * Math.sin(dl);
+  let Y = CY - R * (cl0 * Math.sin(la) - sl0 * Math.cos(la) * Math.cos(dl));
+  if (z < 0.1 || obj.nombre === "el planeta Tierra") { X = CX; Y = CY - R * 1.08; }
+  else {
+    ctx.fillStyle = "#e3261b"; ctx.beginPath(); ctx.arc(X, Y, 5 * esc, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#e3261b"; ctx.lineWidth = 2 * esc; ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X, Y - 26 * esc); ctx.stroke();
+    Y -= 36 * esc;
+  }
+  const texto = "Destruyendo " + obj.nombre;
+  ctx.font = `bold ${Math.round(15 * esc)}px "Segoe UI", sans-serif`;
+  const ancho = ctx.measureText(texto).width + 16 * esc;
+  ctx.fillStyle = "rgba(20,10,5,.82)";
+  ctx.fillRect(X - ancho / 2, Y - 13 * esc, ancho, 26 * esc);
+  ctx.fillStyle = "#ffd5b0"; ctx.fillText(texto, X, Y);
 }
 
 requestAnimationFrame(dibujar);
