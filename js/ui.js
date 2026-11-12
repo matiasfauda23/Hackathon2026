@@ -103,10 +103,11 @@ function mensajeIronico(n, r) {
 function mostrarResultado() {
   const r = sim.resultado;
   r.oceanoPct = 100 * estad.oceano / TOTAL_OCEANO;
-  const siguiente = consultas < SECUENCIA.length ? SECUENCIA[consultas] : null;
-  const div = document.getElementById("resultado");
-  div.innerHTML = `
-    <h2>Informe de impacto</h2>
+  if (sim.nivel.id === "todo") return;   // en la última consulta se muestra la pantalla de felicitaciones
+  const expediente = 1000 + (hashTexto(sim.texto) % 9000);
+  document.getElementById("docMeta").innerHTML =
+    `<span>Expediente N.º ${expediente}/2026</span><span>Fecha: ${new Date().toLocaleDateString("es-AR")}</span>`;
+  document.getElementById("docCuerpo").innerHTML = `
     <table>
       <tr><td>Consulta número</td><td>${sim.numero}</td></tr>
       <tr><td>Zona destruida</td><td>${sim.objetivo.nombre}</td></tr>
@@ -120,10 +121,20 @@ function mostrarResultado() {
       <tr><td>Arena generada</td><td>${fmt(r.arena, 1)} t</td></tr>
     </table>
     <div class="conclusion">${mensajeIronico(sim.numero, r)}
-      <br><small>Salud del planeta: <b>${fmt(calcularSalud(), 4)} %</b>.
-      ${siguiente ? `Próxima consulta: ${siguiente.nombre}.` : "No queda nada más para destruir."}</small></div>
+      <br><small>Salud del planeta: <b>${fmt(calcularSalud(), 4)} %</b>.</small></div>
     <p class="nota">Cifras 100 % inventadas, calculadas con máxima seriedad. Ningún pingüino fue dañado en la realización de este cálculo.</p>`;
-  div.style.display = "block";
+  document.getElementById("informeModal").classList.add("visible");
+}
+
+// Respuestas a "¿Desea continuar destruyendo el planeta?"
+function seguir() {
+  document.getElementById("informeModal").classList.remove("visible");
+  textarea.value = "";
+  textarea.focus();
+}
+function noSeguir() {
+  restaurar();
+  document.getElementById("estadoTexto").textContent = "Decisión responsable. Restauramos lo que quedaba del planeta.";
 }
 
 // =====================================================================
@@ -132,7 +143,7 @@ function mostrarResultado() {
 const textarea = document.getElementById("pregunta");
 function actualizarIndicador() {
   document.getElementById("nivelTexto").innerHTML = consultas < SECUENCIA.length
-    ? `Próxima consulta destruye: <b>${siguienteObjetivo().nombre}</b>`
+    ? "Escribí tu consulta. El planeta espera."
     : "<b>Ya no queda nada para destruir.</b>";
   document.getElementById("nivelChars").textContent = `Consultas hechas: ${consultas}`;
 }
@@ -158,6 +169,7 @@ function restaurar() {
   lavaFrac = 0; lunaExplota = Infinity; consultas = 0; consumidoTodo = false;
   actualizarIndicador();
   document.getElementById("final").classList.remove("visible");
+  document.getElementById("informeModal").classList.remove("visible");
   document.getElementById("resultado").style.display = "none";
   document.getElementById("estadoTexto").textContent = "Planeta restaurado. Disfrutalo mientras dure.";
   document.getElementById("estadoPct").textContent = "";
