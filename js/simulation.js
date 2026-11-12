@@ -5,25 +5,12 @@ let sim = null;                    // consulta en curso
 let reloj = 0;                     // segundos desde que se abrió la página
 let lavaFrac = 0;                  // porción de tierra que se vuelve lava
 let lunaExplota = Infinity;        // momento en que explota la Luna
-let provinciasDestruidas = [];
 const golpeAnimal = new Float32Array(ANIMALES.length).fill(Infinity);
 const INICIO = 1.4;                // segundos que tarda la cámara en llegar al objetivo
 
-function contarPalabras(texto) { return texto.trim().split(/\s+/).filter(Boolean).length; }
+let consultas = 0;                 // cuántas consultas se hicieron desde la última restauración
 
-function nivelDe(palabras) {
-  let nivel = NIVELES[0];
-  for (const n of NIVELES) if (palabras >= n.min) nivel = n;
-  return nivel;
-}
-
-// La primera provincia siempre es Tucumán; después, una al azar que siga en pie
-function elegirProvincia() {
-  if (!provinciasDestruidas.length) return PROVINCIAS[0];
-  const quedan = PROVINCIAS.filter(p => !provinciasDestruidas.includes(p.nombre));
-  const lista = quedan.length ? quedan : PROVINCIAS;
-  return lista[Math.floor(Math.random() * lista.length)];
-}
+function siguienteObjetivo() { return SECUENCIA[Math.min(consultas, SECUENCIA.length - 1)]; }
 
 // Distancia angular (en radianes) entre un punto de la grilla y un lugar
 function distancia(i, lat, lon) {
@@ -34,13 +21,10 @@ function distancia(i, lat, lon) {
 // Define qué se destruye: el nombre, hacia dónde mira la cámara y qué puntos entran
 function definirObjetivo(nivel) {
   switch (nivel.id) {
-    case "provincia": {
-      const p = elegirProvincia();
-      provinciasDestruidas.push(p.nombre);
-      return { nombre: p.nombre, lat: p.lat, lon: p.lon, expansion: 1.2,
-               dentro: i => distancia(i, p.lat, p.lon) < 2.8 * RAD,
-               dentroAnimal: (la, lo) => Math.abs(la - p.lat) < 3 && Math.abs(lo - p.lon) < 3 };
-    }
+    case "provincia":
+      return { nombre: nivel.nombre, lat: nivel.lat, lon: nivel.lon, expansion: 1.2 + nivel.radio / 8,
+               dentro: i => (tipo[i] !== 0 || nivel.radio < 4) && distancia(i, nivel.lat, nivel.lon) < nivel.radio * RAD,
+               dentroAnimal: (la, lo) => Math.abs(la - nivel.lat) < nivel.radio && Math.abs(lo - nivel.lon) < nivel.radio };
     case "pais":
       return { nombre: "Argentina", lat: -36, lon: -64, expansion: 2.5,
                dentro: i => tipo[i] !== 0 && enPoligono(lonDeg[i], latDeg[i], ARGENTINA),
@@ -49,16 +33,16 @@ function definirObjetivo(nivel) {
       return { nombre: "América", lat: -5, lon: -75, expansion: 3.5,
                dentro: i => tipo[i] !== 0 && lonDeg[i] < -25,
                dentroAnimal: (la, lo) => lo < -25 && lo > -170 && la > -60 };
-    default: // planeta, luna, todo
+    default: // planeta y todo
       return { nombre: "el planeta Tierra", lat: -34.6, lon: -58.4, expansion: 4.5,
-               dentro: i => tipo[i] !== 0 || rnd2[i] < { planeta: 0.75, luna: 0.97, todo: 1 }[nivel.id],
+               dentro: i => tipo[i] !== 0 || rnd2[i] < (nivel.id === "planeta" ? 0.75 : 1),
                dentroAnimal: () => true };
   }
 }
 
 function prepararDestruccion(texto) {
-  const palabras = contarPalabras(texto);
-  const nivel = nivelDe(palabras);
+  const nivel = siguienteObjetivo();
+  consultas++;
   const obj = definirObjetivo(nivel);
   const comienzo = reloj + INICIO;
 
@@ -85,19 +69,19 @@ function prepararDestruccion(texto) {
     }
   });
   // 4) extras de los niveles más altos
-  if (nivel.id === "luna" || nivel.id === "todo") {
-    lavaFrac = Math.max(lavaFrac, nivel.id === "todo" ? 0.35 : 0.15);
+  if (nivel.id === "todo") {
+    lavaFrac = 0.35;
     if (lunaExplota === Infinity) lunaExplota = comienzo + obj.expansion * 0.8;
   }
 
   // en los niveles planetarios el informe cuenta todo lo destruido, no solo lo nuevo
-  if (["planeta", "luna", "todo"].includes(nivel.id)) {
+  if (["planeta", "todo"].includes(nivel.id)) {
     nuevosTierra = 0; nuevosOceano = 0;
     for (let i = 0; i < N; i++) if (golpe[i] !== Infinity) tipo[i] === 0 ? nuevosOceano++ : nuevosTierra++;
   }
 
   return {
-    t0: reloj, palabras, nivel, objetivo: obj, texto,
+    t0: reloj, numero: consultas, nivel, objetivo: obj, texto,
     nuevosTierra, nuevosOceano,
     fin: INICIO + obj.expansion + 4,
     lonInicio: lon0, latInicio: lat0, terminado: false,
