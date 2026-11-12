@@ -3,6 +3,10 @@
 **Pabellón:** 4. Decisiones Exageradas
 **Ingrediente improbable:** Número absurdamente preciso
 
+**Demo online:** https://matiasfauda23.github.io/Hackathon2026/
+
+**Repositorio:** https://github.com/matiasfauda23/Hackathon2026
+
 ## El problema
 Cada vez que le hacemos una consulta a una IA se consumen recursos (energía, agua para enfriar servidores...), pero nadie sabe cuánto. Programadores y estudiantes hacemos decenas de consultas por día sin tener idea de lo que "cuestan" al planeta.
 
