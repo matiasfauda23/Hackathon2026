@@ -23,14 +23,14 @@ Mientras calcula, un planeta 3D muestra la destrucción en vivo: se incendian lo
 
 ## Cómo probarlo
 1. Descargá el repositorio y abrí `index.html` en un navegador (Chrome, Firefox o Edge). No hace falta instalar nada.
-2. Escribí cualquier consulta y tocá "Calcular impacto de mi consulta": se destruye Tucumán y aparece el informe con un mensaje irónico.
-3. Seguí haciendo consultas para ver cómo escala la destrucción. Debajo del cuadro de texto se ve qué destruye la próxima.
+2. Escribí cualquier consulta y tocá "Calcular impacto de mi consulta": se destruye Tucumán.
+3. Después de cada destrucción aparece un informe oficial con las cifras y la pregunta "¿Desea continuar destruyendo el planeta?". Con "Sí" seguís consultando y con "No" se restaura el planeta.
 4. El botón "Restaurar el planeta" lo deja como nuevo y reinicia la secuencia.
 
 ## Cómo funciona
 - **Planeta:** los continentes son polígonos simplificados (longitud y latitud). Se arma una grilla de puntos cada 2 grados, se marca cuáles son tierra, océano o hielo, y se dibujan en un `<canvas>` con proyección ortográfica para que parezca una esfera 3D que gira.
 - **Secuencia:** `SECUENCIA` (en `data.js`) define qué se destruye en cada consulta. `definirObjetivo()` decide qué puntos entran (un círculo alrededor de Tucumán, Francia o India, el contorno de Argentina, la longitud de América o todo el planeta).
-- **Mensajes:** `mensajeIronico()` arma un mensaje distinto para cada consulta, con las cifras de lo destruido.
+- **Informe:** `mostrarResultado()` abre un pop-up con formato de documento oficial, y `mensajeIronico()` arma un mensaje distinto para cada consulta, con las cifras de lo destruido.
 - **Destrucción:** `prepararDestruccion()` calcula cuándo le llega el fuego a cada punto según su distancia al objetivo. `colorDe()` decide su color según el tiempo que pasó: verde → fuego → carbón → arena. Lo destruido queda destruido hasta restaurar.
 - **Cifras:** `calcularResultado()` genera los números a partir del texto, así que la misma consulta da siempre el mismo resultado. Todas las cifras son inventadas.
 
