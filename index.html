@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HuellaIA · ¿Cuánto planeta cuesta tu consulta?</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="fondoVivo" class="fondo"></div>
+<div id="fondoMuerto" class="fondo"></div>
+<div id="hojas"></div>
+
+<header>
+  <h1 id="titulo">🌍 HuellaIA</h1>
+  <p>Calculadora oficial de recursos del planeta consumidos por cada consulta a una inteligencia artificial</p>
+</header>
+
+<main class="grid">
+  <section class="panel globoPanel">
+    <div class="cielo vivo"></div><div class="cielo muerto"></div>
+    <canvas id="globo"></canvas>
+    <div class="estado"><span id="estadoTexto">Planeta en perfecto estado. Por ahora.</span><span id="estadoPct"></span></div>
+    <div class="barra"><div id="barraRelleno"></div></div>
+  </section>
+
+  <section class="panel">
+    <h2>Tu consulta</h2>
+    <textarea id="pregunta" placeholder="Escribí lo que le ibas a preguntar a la IA. Ej.: hola"></textarea>
+    <div class="nivel"><span id="nivelTexto">Escribí algo… si te animás.</span><span id="nivelChars">0 caracteres</span></div>
+    <button id="boton" onclick="consultar()">Calcular impacto de mi consulta</button>
+
+    <div class="salud">
+      <div class="fila"><span>Salud del planeta</span><span id="saludTexto">100,0000 %</span></div>
+      <div class="medidor"><div id="saludBarra"></div></div>
+    </div>
+
+    <div class="vivos">
+      <div><b id="vArboles">0</b>árboles talados</div>
+      <div><b id="vOceano">0,0000 %</b>del océano evaporado</div>
+      <div><b id="vEspecies">0</b>especies extintas</div>
+      <div><b id="vIncendios">0</b>focos de incendio activos</div>
+    </div>
+
+    <div id="resultado"></div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/planet.js"></script>
+<script src="js/simulation.js"></script>
+<script src="js/globe.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
